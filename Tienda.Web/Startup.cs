@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Tienda.Web.Data;
-using Tienda.Web.Data.Entities;
 
 namespace Tienda.Web
 {
+    using Microsoft.AspNetCore.HttpsPolicy;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Routing.Internal;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Data;
+    using Helpers;
+    using Data.Entities;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -33,7 +33,24 @@ namespace Tienda.Web
             });
             services.AddTransient<SeedDB>();
 
-            services.AddScoped<IRepository, Repository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<ICountryRepository, CountryRepository>();
+            services.AddScoped<IUserHelper, UserHelper>();
+            
+
+
+            services.AddIdentity<User, IdentityRole>(cfg =>
+            {
+                cfg.User.RequireUniqueEmail = true;
+                cfg.Password.RequireDigit = false;
+                cfg.Password.RequiredUniqueChars = 0;
+                cfg.Password.RequireLowercase = false;
+                cfg.Password.RequireNonAlphanumeric = false;
+                cfg.Password.RequireUppercase = false;
+                cfg.Password.RequiredLength = 6;
+            })
+        .AddEntityFrameworkStores<DataContext>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,6 +72,8 @@ namespace Tienda.Web
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseAuthentication();
 
             app.UseEndpoints(endpoints =>
             {
